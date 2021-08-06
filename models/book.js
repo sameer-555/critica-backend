@@ -1,5 +1,5 @@
 class Book {
-    constructor(id,title,author,genre,bookCover,description,totalRating,totalUsersCount,averageRating,totalComments,creationDateAndTime){
+    constructor(id,title,author,genre,bookCover,description,totalRating,totalUsersCount,averageRating,creationDateAndTime,totalComments){
         this.id = id
         this.title = title
         this.author = author
@@ -8,9 +8,9 @@ class Book {
         this.description = description
         this.totalRating = totalRating
         this.totalUsersCount = totalUsersCount
-        this.totalComments = totalComments
+        this.averageRating = averageRating
         this.creationDateAndTime = creationDateAndTime
-        this.averageRating = averageRating;
+        this.totalComments = totalComments
     }
 }
 
