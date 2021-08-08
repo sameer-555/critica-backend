@@ -7,6 +7,7 @@ const config = require('./config')
 const userRoutes = require('./routers/user-router');
 const homeRoutes = require("./routers/home-router")
 const bookRoutes = require("./routers/book-router")
+const reviewRoutes = require("./routers/review-router")
 
 const app = express();
 
@@ -22,5 +23,6 @@ app.use(bodyParser.json());
 app.use('/api',userRoutes.routes);
 app.use('/api',homeRoutes.routes);
 app.use('/api',bookRoutes.routes);
+app.use('/api',reviewRoutes.routes)
 
 app.listen(config.port, () => console.log("app is running on this port",config.port))

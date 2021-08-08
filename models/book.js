@@ -12,6 +12,6 @@ class Book {
         this.creationDateAndTime = creationDateAndTime
         this.totalComments = totalComments
     }
-}
+} 
 
 module.exports = Book
