@@ -21,9 +21,10 @@ const homeData = async (req,res,next) => {
         }
         //to fetch highest rated book
         const criticallyAcclimedBooks = await firestore.collection('books').orderBy('averageRating','desc').limit(10).get()
-        var criticallyAcclimedArray = [];
+        const criticallyAcclimedArray = [];
         if(!criticallyAcclimedBooks.expty){
-            criticallyAcclimedBooks.forEach(async (doc) => {
+            for( let i in criticallyAcclimedBooks.docs){
+                const doc = criticallyAcclimedBooks.docs[i]
                 const critically_accliamed_book = new Book(
                     doc.id,
                     doc.data().title,
@@ -42,13 +43,14 @@ const homeData = async (req,res,next) => {
                 }
                 critically_accliamed_book.author = await getAuthorByID(critically_accliamed_book.author)      
                 criticallyAcclimedArray.push(critically_accliamed_book)
-            })
+            }
         }
         //to fetch most read book
         const mostReadBooks = await firestore.collection('books').orderBy('totalUsersCount','desc').limit(10).get()
         const mostReadBookArray = []
         if(!mostReadBooks.expty){
-            mostReadBooks.forEach(async (doc) => {
+            for( let i in mostReadBooks.docs){
+                const doc = mostReadBooks.docs[i]
                 const most_read_book = new Book(
                     doc.id,
                     doc.data().title,
@@ -61,21 +63,21 @@ const homeData = async (req,res,next) => {
                     doc.data().averageRating,
                     doc.data().creationDateAndTime,
                     doc.data().totalComments
-                    
                 )
                 if(genresDict){
                 most_read_book.genre = updateGenre(genresDict,most_read_book.genre)
                 }
                 most_read_book.author = await getAuthorByID(most_read_book.author)
                 mostReadBookArray.push(most_read_book)
-            })
+        }
         }
 
         //recently added books 
         const newlyAddedReadBooks = await firestore.collection('books').orderBy('creationDateAndTime','asc').limit(10).get()
         const newlyAddedBookArray = []
         if(!newlyAddedReadBooks.expty){
-            newlyAddedReadBooks.forEach(async (doc) => {
+            for( let i in newlyAddedReadBooks.docs){
+                const doc = newlyAddedReadBooks.docs[i]
                 const newly_added_book = new Book(
                     doc.id,
                     doc.data().title,
@@ -94,7 +96,9 @@ const homeData = async (req,res,next) => {
                 }
                 newly_added_book.author = await getAuthorByID(newly_added_book.author)
                 newlyAddedBookArray.push(newly_added_book)
-            })
+
+        }
+
         }
         //creating response
         response.critically_accliamed = criticallyAcclimedArray;
