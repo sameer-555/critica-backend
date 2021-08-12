@@ -48,7 +48,7 @@ const getBookbyFilterValue = async (req,res,next) => {
     const data = req.body.filter
     const offset = req.query.offset
     const limit = req.query.limit
-    var keys = Object.keys(data)
+    const keys = Object.keys(data)
     //basic checking and validations
     for(let i in keys){
         if( !Array.isArray(data[keys[i]])){
@@ -70,7 +70,7 @@ const getBookbyFilterValue = async (req,res,next) => {
 
     //fetching genres at once (to makesure there are less call to backend/firebase)
     const genresCollection = await firestore.collection('genres').get()
-    var genresDict = {}
+    let genresDict = {}
     if(!genresCollection.empty){
         genresCollection.forEach(doc => {
             genresDict[doc.id] = doc.data().genre
@@ -78,7 +78,7 @@ const getBookbyFilterValue = async (req,res,next) => {
     }
 
     //apply filter
-    var bookFilterQuery = firestore.collection("books")
+    const bookFilterQuery = firestore.collection("books")
     for(let i in keys){
         bookFilterQuery = bookFilterQuery.where(keys[i],data[keys[i]][0],data[keys[i]][1])
     }

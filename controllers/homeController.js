@@ -6,14 +6,14 @@ const firestore = firebase.firestore();
 
 const homeData = async (req,res,next) => {
     try{
-        var response = {
+        const response = {
             critically_accliamed:[],
             most_read:[],
             newly_added:[],
         }
         //fetching genres at once (to makesure there are less call to backend/firebase)
         const genresCollection = await firestore.collection('genres').get()
-        var genresDict = {}
+        const genresDict = {}
         if(!genresCollection.empty){
             genresCollection.forEach(doc => {
                 genresDict[doc.id] = doc.data().genre

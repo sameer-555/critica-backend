@@ -22,8 +22,8 @@ const updateUserBookDetails = async(req,res,next) => {
         }
     }else{
         try{
-            var field_list = ['isRead','isInWishlist','isLiked']
-            var userBookID = ''
+            const field_list = ['isRead','isInWishlist','isLiked']
+            let userBookID = ''
             userBookRef.forEach(
                 doc => {
                     userBookID = doc.id
@@ -31,7 +31,7 @@ const updateUserBookDetails = async(req,res,next) => {
             )
             for(let i in field_list){
                 if(Object.keys(data).includes(field_list[i])){
-                    var update_details = {}
+                    const update_details = {}
                     update_details[field_list[i]] = true
                     await firestore.collection('user_books').doc(userBookID).update(update_details);
                     res.status(200).send('updated successfully.')
@@ -46,9 +46,9 @@ const updateUserBookDetails = async(req,res,next) => {
 }
 
 const createUserBookRelation = async (relationData) => {
-    var bookRelationObj = {}
+    const bookRelationObj = {}
     try{
-        var field_list = [ 'isRead','isInWishlist','isLiked']
+        const field_list = [ 'isRead','isInWishlist','isLiked']
         field_list.forEach(
         field => {
             bookRelationObj[field] = false
