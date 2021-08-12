@@ -6,15 +6,15 @@ const firestore = firebase.firestore();
 
 const homeData = async (req,res,next) => {
     try{
-        var response = {
+        const response = {
             critically_accliamed:[],
             most_read:[],
             newly_added:[],
         }
         //fetching genres at once (to makesure there are less call to backend/firebase)
         const genresCollection = await firestore.collection('genres').get()
-        var genresDict = {}
-        if(!genresCollection.expty){
+        const genresDict = {}
+        if(!genresCollection.empty){
             genresCollection.forEach(doc => {
                 genresDict[doc.id] = doc.data().genre
             })
@@ -22,7 +22,7 @@ const homeData = async (req,res,next) => {
         //to fetch highest rated book
         const criticallyAcclimedBooks = await firestore.collection('books').orderBy('averageRating','desc').limit(10).get()
         const criticallyAcclimedArray = [];
-        if(!criticallyAcclimedBooks.expty){
+        if(!criticallyAcclimedBooks.empty){
             for( let i in criticallyAcclimedBooks.docs){
                 const doc = criticallyAcclimedBooks.docs[i]
                 const critically_accliamed_book = new Book(
@@ -48,7 +48,7 @@ const homeData = async (req,res,next) => {
         //to fetch most read book
         const mostReadBooks = await firestore.collection('books').orderBy('totalUsersCount','desc').limit(10).get()
         const mostReadBookArray = []
-        if(!mostReadBooks.expty){
+        if(!mostReadBooks.empty){
             for( let i in mostReadBooks.docs){
                 const doc = mostReadBooks.docs[i]
                 const most_read_book = new Book(
@@ -75,7 +75,7 @@ const homeData = async (req,res,next) => {
         //recently added books 
         const newlyAddedReadBooks = await firestore.collection('books').orderBy('creationDateAndTime','asc').limit(10).get()
         const newlyAddedBookArray = []
-        if(!newlyAddedReadBooks.expty){
+        if(!newlyAddedReadBooks.empty){
             for( let i in newlyAddedReadBooks.docs){
                 const doc = newlyAddedReadBooks.docs[i]
                 const newly_added_book = new Book(
@@ -117,10 +117,13 @@ const updateGenre = (genredictionary,genreList) => {
 }
 
 const getAuthorByID = async (id) => {
-    const authorDetails = await firestore.collection('authors').doc(id).get()
+    //according to chrome (""+num) is fastest base transformation
+    const authorDetails = await firestore.collection('authors').doc(""+id).get()
     return authorDetails.data().author_name
 }
 
 module.exports = {
-    homeData
+    homeData,
+    getAuthorByID,
+    updateGenre
 }
