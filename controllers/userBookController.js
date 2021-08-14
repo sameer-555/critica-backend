@@ -2,11 +2,37 @@
 
 const { response } = require('express');
 const firebase = require('../database');
-const UserBook = require('../models/userBook')
 const firestore = firebase.firestore();
+const {getAuthorByID,updateGenre} = require('../controllers/homeController');
 
-const getUserBooks = async(req,res,next) => {
+//to fetch the user books in read
+const getUserReadBooks = async(req,res,next) => {
     const userId = req.params.id
+    const genresCollection = await firestore.collection('genres').get()
+    const genresDict = {}
+    if(!genresCollection.empty){
+        genresCollection.forEach(doc => {
+            genresDict[doc.id] = doc.data().genre
+        })
+    }
+    const userBookRef = await firestore.collection('user_books').get()
+    const response = {
+        total: 0,
+        books: []
+    }
+    if(!userBookRef.empty){
+        const bookList = [] 
+        for(let i in userBookRef.docs){
+            response.total += 1 
+            const doc = userBookRef.docs[i]
+            const bookData = await getBookInfo(doc.data().bookID,genresDict)
+            bookList.push(bookData)
+        }
+        response.books = bookList
+        res.status(200).send(response)
+    }else{
+        res.status(200).send("No entries found")
+    }
 }
 
 const updateUserBookDetails = async(req,res,next) => {
@@ -64,10 +90,38 @@ const createUserBookRelation = async (relationData) => {
     }catch(error){
         return false
     } 
- 
-    
+}
+
+const getBookInfo = async (bookID,genreDict) => {
+    const firestoreRef = await firestore.collection('books').doc(bookID).get()
+    let bookdata = ''
+    if(!firestoreRef.empty){
+        for( let i in firestoreRef.docs){
+            const doc = firestoreRef.docs[i]
+            const book = new Book(
+                doc.id,
+                doc.data().title,
+                doc.data().author,
+                doc.data().genre,
+                doc.data().bookCover,
+                doc.data().description,
+                doc.data().totalRating,
+                doc.data().totalUsersCount,
+                doc.data().averageRating,
+                doc.data().creationDateAndTime,
+                doc.data().totalComments
+            )
+            if(genreDict){
+                book.genre = updateGenre(genreDict,book.genre)
+            }
+            book.author = await getAuthorByID(book.author)
+            bookdata = book 
+        }
+    }
+    return bookdata
 }
 
 module.exports = {
-    updateUserBookDetails
+    updateUserBookDetails,
+    getUserReadBooks
 }

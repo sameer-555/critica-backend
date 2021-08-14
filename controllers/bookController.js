@@ -44,6 +44,88 @@ const updateBook = async(req,res,next) => {
 }
 
 
+const getBookSearchFilteredQuery = async (req,res,next) => {
+    const data = req.body.filter
+    const limit = req.query.limit
+    const keys = Object.keys(data)
+    //basic validation on filter
+    for(let i in keys){
+        if (['averageRating','author','genre','title'].includes(keys[i])){
+            if(keys[i] === 'genre' && !Array.isArray(data[keys[i]])){
+                res.status(400).send("Please make sure genre value is set in [] example {genre:['sci-fy','fantasy']}")
+            }
+            if(['author','title'].includes(keys[i]) && !(typeof(data[keys[i]]) === 'string')){
+                res.status(400).send("Please make sure Author or Title value is set in [] example {title:'Animal Farm'}")
+            }
+            if(data[keys[i]] === 'averageRating' && !(typeof(data[keys[i]]) === 'number')){
+                res.status(400).send("Please make sure AverageRating value is number.")
+            }
+        }
+        else{
+            res.status(400).send("filter avaliable based on Title, AverageRating, Genre and Author Name")
+        }
+    }
+    const bookQueryRef = firestore.collection('books')
+    const filterParamerList = ['averageRating','author','genre','title']
+
+
+    for(let i in keys){
+        if(keys[i] === 'averageRating'){
+            let whereClause = getFilterType(keys[i],data[keys[i]])
+            // console.log("-------00-------",whereClause) 
+            bookQueryRef = bookQueryRef.where(whereClause[0],whereClause[1],whereClause[2])
+        }
+    }
+    // bookQueryRef = bookQueryRef.where('genre','array-contains-any',[1,2])
+    const getData  = await bookQueryRef.get()
+    // console.log(getData.docs)
+    for(let i in getData.docs){
+        const doc = getData.docs[i]
+        const book = doc.data()
+        book['id'] = doc.id
+    }
+
+    // for(let i in keys){
+    //     if(['averageRating','genre'].includes(keys[i])){
+    //         if(keys[i] === 'genre'){
+    //             data[keys[i]] = await getGenreIDFromName(data[keys[i]])
+    //             console.log('-------------',data[keys[i]])
+    //         }
+    //         const whereClause = getFilterType(keys[i],data[keys[i]])
+    //         // bookQueryRef = bookQueryRef.where(whereClause[0],whereClause[1],whereClause[2])
+    //     }
+    //     // if(['author','title'].includes(keys[i]){
+    //     //     const filterVal = data[keys[i]]
+    //     //     filterParamerList = filterParamerList.orderBy(keys[i],'asc').startAt([$filterVal]).endAt([$filterVal.'\uf8ff'])
+
+    //     // }
+    //     const index = filterParamerList.indexOf(keys[i]);
+    //     if (index > -1) {
+    //         filterParamerList.splice(index, 1);
+    //     }
+    // }
+
+
+    
+   
+    // for(let i in keys){
+    //     if(['averageRating','genre'].includes(keys[i])){
+    //         var whereClause = getFilterType(keys[i],data[keys[i]])
+    //         filterParamerList = filterParamerList.where(whereClause[0],whereClause[1],whereClause[2])
+    //     }
+    //     const index = filterParamerList.indexOf(keys[i]);
+    //     if (index > -1) {
+    //         filterParamerList.splice(index, 1);
+    //     }
+    // }
+    
+
+    res.status(200).send("success baby")
+}
+
+
+
+
 const getBookbyFilterValue = async (req,res,next) => {
     const data = req.body.filter
     const offset = req.query.offset
@@ -127,6 +209,32 @@ const getBookbyFilterValue = async (req,res,next) => {
     }
     res.status(200).send(response)
 }
+
+
+//create filter using attribute 
+const getFilterType = async (attribute,value) => {
+    if(attribute === 'averageRating'){
+        return [attribute,'==',value]
+    }
+    if(attribute === 'genre'){
+        for(let i in value){
+
+        }
+        return [attribute,'in',value]
+    }
+}
+
+const getGenreIDFromName = async (genres) => {
+    var genreIDList = []
+    const getGenreRef = await firestore.collection('genres').get()
+    for(let i in getGenreRef.docs){
+        const doc = getGenreRef.docs[i]
+        if (genres.includes(doc.data().genre)){
+            genreIDList.push(doc.id)
+        }
+    }
+    return genreIDList
+} 
 
 // const deleteUser = async
 module.exports = {
