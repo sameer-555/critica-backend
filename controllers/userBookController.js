@@ -58,7 +58,7 @@ const updateUserBookDetails = async(req,res,next) => {
             for(let i in field_list){
                 if(Object.keys(data).includes(field_list[i])){
                     const update_details = {}
-                    update_details[field_list[i]] = true
+                    update_details[field_list[i]] = data[field_list[i]]
                     await firestore.collection('user_books').doc(userBookID).update(update_details);
                     res.status(200).send('updated successfully.')
                 }
