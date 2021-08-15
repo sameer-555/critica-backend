@@ -1,9 +1,10 @@
 'use strict'
 
 const firebase = require('../database');
-const Review = require('../models/review')
 const firestore = firebase.firestore();
 const {getUserName} = require("../controllers/userController")
+const {addUserComment} = require("../controllers/UserCommentController")
+
 
 const addReview = async (req, res, next) => {
     try {
@@ -89,10 +90,44 @@ const getReviewsByBookId = async (req,res,next) => {
     res.status(200).send(response)
 }
 
+//add likes to comment and save user id on the comments
+const likeComment = async (req,res,next) => {
+    const reviewID = req.body.id
+    const isLiked = req.body.isLiked
+    const userID = req.body.userID
+    const reviewRef = await firestore.collection('reviews').doc(reviewID).get()
+    const updateUserComment = await addUserComment(userID,reviewID,isLiked)
+    const updateReview = {}
+    if(isLiked){      
+        if(updateUserComment){
+            updateReview['totalLikes'] = reviewRef.data().totalLikes + 1
+            await firestore.collection('reviews').doc(reviewID).update(updateReview)
+            res.status(200).send("like added to the review")
+            return
+        }
+        else{
+            res.status(200).send("isLike is already set currently updated value")
+        }
+    }
+    else{
+        if(updateUserComment){
+            updateReview['totalLikes'] = reviewRef.data().totalLikes - 1
+            await firestore.collection('reviews').doc(reviewID).update(updateReview)
+            res.status(200).send("like removed to the review")
+            return
+        }
+        else{
+            res.status(200).send("isLike is already set currently updated value")
+        }
+    }
+}
+
+
 // const deleteUser = async
 module.exports = {
     addReview,
     updateReview,
     deleteReview,
-    getReviewsByBookId
+    getReviewsByBookId,
+    likeComment
 }
