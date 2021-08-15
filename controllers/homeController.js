@@ -21,90 +21,17 @@ const homeData = async (req,res,next) => {
         }
         //to fetch highest rated book
         const criticallyAcclimedBooks = await firestore.collection('books').orderBy('averageRating','desc').limit(10).get()
-        const criticallyAcclimedArray = [];
-        if(!criticallyAcclimedBooks.empty){
-            for( let i in criticallyAcclimedBooks.docs){
-                const doc = criticallyAcclimedBooks.docs[i]
-                const critically_accliamed_book = new Book(
-                    doc.id,
-                    doc.data().title,
-                    doc.data().author,
-                    doc.data().genre,
-                    doc.data().bookCover,
-                    doc.data().description,
-                    doc.data().totalRating,
-                    doc.data().totalUsersCount,
-                    doc.data().averageRating,
-                    doc.data().creationDateAndTime,
-                    doc.data().totalComments
-                )
-                if(genresDict){
-                    critically_accliamed_book.genre = updateGenre(genresDict,critically_accliamed_book.genre)
-                }
-                critically_accliamed_book.author = await getAuthorByID(critically_accliamed_book.author)      
-                criticallyAcclimedArray.push(critically_accliamed_book)
-            }
-        }
+        const criticallyAcclimedArray = await addBookInHomeResponse(criticallyAcclimedBooks,genresDict)
         //to fetch most read book
         const mostReadBooks = await firestore.collection('books').orderBy('totalUsersCount','desc').limit(10).get()
-        const mostReadBookArray = []
-        if(!mostReadBooks.empty){
-            for( let i in mostReadBooks.docs){
-                const doc = mostReadBooks.docs[i]
-                const most_read_book = new Book(
-                    doc.id,
-                    doc.data().title,
-                    doc.data().author,
-                    doc.data().genre,
-                    doc.data().bookCover,
-                    doc.data().description,
-                    doc.data().totalRating,
-                    doc.data().totalUsersCount,
-                    doc.data().averageRating,
-                    doc.data().creationDateAndTime,
-                    doc.data().totalComments
-                )
-                if(genresDict){
-                most_read_book.genre = updateGenre(genresDict,most_read_book.genre)
-                }
-                most_read_book.author = await getAuthorByID(most_read_book.author)
-                mostReadBookArray.push(most_read_book)
-        }
-        }
-
+        const mostReadBookArray = await addBookInHomeResponse(mostReadBooks,genresDict)
         //recently added books 
         const newlyAddedReadBooks = await firestore.collection('books').orderBy('creationDateAndTime','asc').limit(10).get()
-        const newlyAddedBookArray = []
-        if(!newlyAddedReadBooks.empty){
-            for( let i in newlyAddedReadBooks.docs){
-                const doc = newlyAddedReadBooks.docs[i]
-                const newly_added_book = new Book(
-                    doc.id,
-                    doc.data().title,
-                    doc.data().author,
-                    doc.data().genre,
-                    doc.data().bookCover,
-                    doc.data().description,
-                    doc.data().totalRating,
-                    doc.data().totalUsersCount,
-                    doc.data().averageRating,
-                    doc.data().creationDateAndTime,
-                    doc.data().totalComments
-                )
-                if(genresDict){
-                newly_added_book.genre = updateGenre(genresDict,newly_added_book.genre)
-                }
-                newly_added_book.author = await getAuthorByID(newly_added_book.author)
-                newlyAddedBookArray.push(newly_added_book)
-
-        }
-
-        }
+        const newlyAddedBookArray = await addBookInHomeResponse(newlyAddedReadBooks,genresDict)
         //creating response
         response.critically_accliamed = criticallyAcclimedArray;
         response.most_read = mostReadBookArray;
         response.newly_added = newlyAddedBookArray;
-
         //sending response
         res.status(200).send(response)
     }catch(error){
@@ -114,6 +41,35 @@ const homeData = async (req,res,next) => {
 
 const updateGenre = (genredictionary,genreList) => {
     return genreList.map(val => genredictionary[val])
+}
+
+
+const addBookInHomeResponse = async (firestoreRef, genreDict, ) => {
+    const bookList = [];
+    if(!firestoreRef.empty){
+        for( let i in firestoreRef.docs){
+            const doc = firestoreRef.docs[i]
+            const book = new Book(
+                doc.id,
+                doc.data().title,
+                doc.data().author,
+                doc.data().genre,
+                doc.data().bookCover,
+                doc.data().description,
+                doc.data().totalRating,
+                doc.data().totalUsersCount,
+                doc.data().averageRating,
+                doc.data().creationDateAndTime,
+                doc.data().totalComments
+            )
+            if(genreDict){
+                book.genre = updateGenre(genreDict,book.genre)
+            }
+            book.author = await getAuthorByID(book.author)      
+            bookList.push(book)
+        }
+    }
+    return bookList
 }
 
 const getAuthorByID = async (id) => {

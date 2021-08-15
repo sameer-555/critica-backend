@@ -1,9 +1,10 @@
 const express = require('express')
-const {updateUserBookDetails} = require('../controllers/userBookController');
+const {updateUserBookDetails,getUserReadBooks} = require('../controllers/userBookController');
 
 const router = express.Router();
 
-router.put('/update/userbookdetails',updateUserBookDetails)
+router.put('/userbook/userbookdetails',updateUserBookDetails)
+router.get('/userbook/getbooks/:id',getUserReadBooks)
 
 module.exports = {
     routes:router
