@@ -3,6 +3,7 @@
 const firebase = require('../database');
 const Review = require('../models/review')
 const firestore = firebase.firestore();
+const {getUserName} = require("../controllers/userController")
 
 const addReview = async (req, res, next) => {
     try {
@@ -65,9 +66,33 @@ const removingUserReviewFromBook = async (reviewInfo) => {
     return 
 }
 
+const getReviewsByBookId = async (req,res,next) => {
+    const bookID = req.params.id
+    const reviewRef = await firestore.collection('reviews').orderBy('creationDateAndTime').where('bookID',"==",bookID).get()
+    const response = {
+        total:0,
+        data:[]
+    }
+    if(!reviewRef.empty){
+        for(let i in reviewRef.docs){
+            const doc = reviewRef.docs[i]
+            const review = doc.data()
+            review['id'] = doc.id
+            review['userFullName'] = await getUserName(doc.data().userID)
+            response.data.push(review)
+            response.total = response.total + 1
+        }
+    }
+    else{
+        res.status(200).send("No Review in Book.")
+    }
+    res.status(200).send(response)
+}
+
 // const deleteUser = async
 module.exports = {
     addReview,
     updateReview,
-    deleteReview
+    deleteReview,
+    getReviewsByBookId
 }

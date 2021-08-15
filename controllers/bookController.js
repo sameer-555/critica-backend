@@ -4,6 +4,7 @@ const firebase = require('../database');
 const Book = require('../models/book')
 const firestore = firebase.firestore();
 const {getAuthorByID,updateGenre} = require('../controllers/homeController');
+const { response } = require('express');
 
 const addBook = async (req, res, next) => {
     try {
@@ -13,6 +14,7 @@ const addBook = async (req, res, next) => {
                 data[field] = 0
             }
         )
+        data['title_lowercase'] = data['title'].toLowerCase() 
         await firestore.collection('books').doc().set(data);
         res.status(200).send("Book Added Successfully")
 
@@ -43,18 +45,18 @@ const updateBook = async(req,res,next) => {
     }
 }
 
-
-const getBookSearchFilteredQuery = async (req,res,next) => {
+// getBookSearchFilteredQuery
+const getBookbyFilterValue = async (req,res,next) => {
     const data = req.body.filter
-    const limit = req.query.limit
+    let limit = req.query.limit || 5
     const keys = Object.keys(data)
     //basic validation on filter
     for(let i in keys){
         if (['averageRating','author','genre','title'].includes(keys[i])){
-            if(keys[i] === 'genre' && !Array.isArray(data[keys[i]])){
-                res.status(400).send("Please make sure genre value is set in [] example {genre:['sci-fy','fantasy']}")
+            if((keys[i] === 'genre' && !Array.isArray(data[keys[i]])) || (keys[i] === 'author' && !Array.isArray(data[keys[i]]))){
+                res.status(400).send("Please make sure genre or author value is set in [] example {genre:['sci-fy','fantasy'],author:[1,2]}")
             }
-            if(['author','title'].includes(keys[i]) && !(typeof(data[keys[i]]) === 'string')){
+            if('title' === keys[i] && !(typeof(data[keys[i]]) === 'string')){
                 res.status(400).send("Please make sure Author or Title value is set in [] example {title:'Animal Farm'}")
             }
             if(data[keys[i]] === 'averageRating' && !(typeof(data[keys[i]]) === 'number')){
@@ -65,176 +67,72 @@ const getBookSearchFilteredQuery = async (req,res,next) => {
             res.status(400).send("filter avaliable based on Title, AverageRating, Genre and Author Name")
         }
     }
-    const bookQueryRef = firestore.collection('books')
-    const filterParamerList = ['averageRating','author','genre','title']
 
-
+    //if genre filter is applied then this will be polulate
+    const genresDict = {}
+    let bookQueryRef = firestore.collection('books')
     for(let i in keys){
+        //filtering query for average rating
         if(keys[i] === 'averageRating'){
             let whereClause = getFilterType(keys[i],data[keys[i]])
-            // console.log("-------00-------",whereClause) 
             bookQueryRef = bookQueryRef.where(whereClause[0],whereClause[1],whereClause[2])
         }
-    }
-    // bookQueryRef = bookQueryRef.where('genre','array-contains-any',[1,2])
-    const getData  = await bookQueryRef.get()
-    // console.log(getData.docs)
-    for(let i in getData.docs){
-        const doc = getData.docs[i]
-        const book = doc.data()
-        book['id'] = doc.id
-    }
-
-    // for(let i in keys){
-    //     if(['averageRating','genre'].includes(keys[i])){
-    //         if(keys[i] === 'genre'){
-    //             data[keys[i]] = await getGenreIDFromName(data[keys[i]])
-    //             console.log('-------------',data[keys[i]])
-    //         }
-    //         const whereClause = getFilterType(keys[i],data[keys[i]])
-    //         // bookQueryRef = bookQueryRef.where(whereClause[0],whereClause[1],whereClause[2])
-    //     }
-    //     // if(['author','title'].includes(keys[i]){
-    //     //     const filterVal = data[keys[i]]
-    //     //     filterParamerList = filterParamerList.orderBy(keys[i],'asc').startAt([$filterVal]).endAt([$filterVal.'\uf8ff'])
-
-    //     // }
-    //     const index = filterParamerList.indexOf(keys[i]);
-    //     if (index > -1) {
-    //         filterParamerList.splice(index, 1);
-    //     }
-    // }
-
-
-    
-   
-    // for(let i in keys){
-    //     if(['averageRating','genre'].includes(keys[i])){
-    //         var whereClause = getFilterType(keys[i],data[keys[i]])
-    //         filterParamerList = filterParamerList.where(whereClause[0],whereClause[1],whereClause[2])
-    //     }
-    //     const index = filterParamerList.indexOf(keys[i]);
-    //     if (index > -1) {
-    //         filterParamerList.splice(index, 1);
-    //     }
-    // }
-    
-
-    res.status(200).send("success baby")
-}
-
-
-
-
-const getBookbyFilterValue = async (req,res,next) => {
-    const data = req.body.filter
-    const offset = req.query.offset
-    const limit = req.query.limit
-    const keys = Object.keys(data)
-    //basic checking and validations
-    for(let i in keys){
-        if( !Array.isArray(data[keys[i]])){
-            res.status(400).send("please make sure book filter value is list ")
-        }else{
-            try{
-                if(data[keys[i]].length > 2 || data[keys[i]].length <2){
-                    throw "not allowed"
-                }
-                if(!['==','!=','>','>=','<','<=','in','not-in','array-contains','array-contains-any'].includes(data[keys[i]][0])){
-                    res.status(400).send("only allowed operators :- '==','!=','>','>=','<','<=','in','not-in','array-contains','array-contains-any'")
-                }
-            }catch(error){
-                res.status(400).send("please make sure filter is like following example:{ key: ['=',value]}")
+        //filtering query for title
+        if(keys[i] === 'title'){
+            const title = data[keys[i]].toLowerCase()
+            bookQueryRef = bookQueryRef.orderBy('title_lowercase')
+            .startAt(title)
+            .endAt(`${title}\uf8ff`)
+        }
+        //filtering query for genre
+        if(keys[i] === 'genre'){
+            //fetching genre dict 
+            const genresCollection = await firestore.collection('genres').get()
+            if(!genresCollection.empty){
+                genresCollection.forEach(doc => {
+                    genresDict[doc.id] = doc.data().genre
+                })
             }
+            //applying query filter 
+            bookQueryRef = bookQueryRef.where("genre","array-contains-any",data[keys[i]])
         }
     }
-    //-------validations ends here
 
-    //fetching genres at once (to makesure there are less call to backend/firebase)
-    const genresCollection = await firestore.collection('genres').get()
-    let genresDict = {}
-    if(!genresCollection.empty){
-        genresCollection.forEach(doc => {
-            genresDict[doc.id] = doc.data().genre
-        })
-    }
-
-    //apply filter
-    const bookFilterQuery = firestore.collection("books")
-    for(let i in keys){
-        bookFilterQuery = bookFilterQuery.where(keys[i],data[keys[i]][0],data[keys[i]][1])
-    }
-
-    // bookFilterQuery = bookFilterQuery.limit(limit)
-    // var lastSeenDoc = ''
-    // if(offset){
-    //     console.log("0000000000")
-    //     const lastSeenDocRef = await firestore.collection('books').doc(offset).get()
-    //     lastSeenDocRef.forEach(doc => {
-    //         lastSeenDoc = doc
-    //     });
-    // }
-    // console.log(lastSeenDoc,"------000------000----===-----")
-
-    //get books
-    const bookFilterQueryRef = await bookFilterQuery.get()
-    //response
+    const getData  = await bookQueryRef.get()
     const response = {
         total:0,
-        books:[]
+        data:[]
     }
-    
 
-    for(let i in bookFilterQueryRef.docs){
-        const doc = bookFilterQueryRef.docs[i]
-        response.total += 1
-        const book = new Book(
-            doc.id,
-            doc.data().title,
-            doc.data().author,
-            doc.data().genre,
-            doc.data().bookCover,
-            doc.data().description,
-            doc.data().totalRating,
-            doc.data().totalUsersCount,
-            doc.data().averageRating,
-            doc.data().creationDateAndTime,
-            doc.data().totalComments
-        )
-        if(genresDict){
-            book.genre = updateGenre(genresDict,book.genre)
+    for(let i in getData.docs){    
+        const doc = getData.docs[i]
+        //in firebase you cannot use array contains and in operator at the same time, so filtering the author programmatically
+        if(keys.includes('author')){
+            if(!data['author'].includes(doc.data().author)){
+                continue
+            }
         }
-        book.author = await getAuthorByID(book.author)
-        response.books.push(book)
+        const book = doc.data()
+        book['genre'] = updateGenre(genresDict,book['genre'])
+        book['author'] = await getAuthorByID(book['author'])
+        book['id'] = doc.id
+        response.total = response.total + 1
+        response.data.push(book)
+        limit = limit - 1
+        if(limit === 0){
+            break
+        }
     }
     res.status(200).send(response)
 }
 
 
 //create filter using attribute 
-const getFilterType = async (attribute,value) => {
+const getFilterType = (attribute,value) => {
     if(attribute === 'averageRating'){
         return [attribute,'==',value]
     }
-    if(attribute === 'genre'){
-        for(let i in value){
-
-        }
-        return [attribute,'in',value]
-    }
 }
-
-const getGenreIDFromName = async (genres) => {
-    var genreIDList = []
-    const getGenreRef = await firestore.collection('genres').get()
-    for(let i in getGenreRef.docs){
-        const doc = getGenreRef.docs[i]
-        if (genres.includes(doc.data().genre)){
-            genreIDList.push(doc.id)
-        }
-    }
-    return genreIDList
-} 
 
 // const deleteUser = async
 module.exports = {
