@@ -9,11 +9,14 @@ const {addUserComment} = require("../controllers/UserCommentController")
 const addReview = async (req, res, next) => {
     try {
         const data = req.body;
+        if(!data['rating'] || !data['comment'] || !data['userID'] || !data['bookID']){
+            res.status(400).send("please make sure Rating,Comment,UserID and BookID is set.")
+        }
         const exists = await checkIfReviewAlreadyExists(data)
         if(exists){
             res.status(400).send('Review for this book already exists by the user.')
         }else{
-            await updateBookInfoAfterReview(data);
+            await updateBookInfoAfterReview(data.bookID,data);
             data['creationDateAndTime'] = Date.now()
             data["totalLikes"] = 0
             await firestore.collection('reviews').doc().set(data);
@@ -28,11 +31,14 @@ const updateReview = async (req,res,next) => {
     try {
         const reviewId = req.params.id
         const updatedReviewData = req.body
+        if(!updatedReviewData.bookID){
+            res.status(400).send("please make sure bookID is in Update Request")
+        }
         const reviewRef = await firestore.collection('reviews').doc(reviewId).get()
         const reviewInfo = reviewRef.data()
-        await removingUserReviewFromBook(reviewInfo)
-        await updateBookInfoAfterReview(updatedReviewData)
         await firestore.collection('reviews').doc(reviewId).update(updatedReviewData)
+        await removingUserReviewFromBook(reviewInfo)
+        await updateBookInfoAfterReview(reviewInfo.bookID,updatedReviewData)
         res.status(200).send("successfully updated")
     }catch (error){
         res.status(400).send(error)
@@ -48,8 +54,7 @@ const deleteReview = async (req,res,next) => {
 }
 
 //updating book accordingly as soon new review is added.
-const updateBookInfoAfterReview = async (reviewInfo) => {
-    const bookID = reviewInfo.bookID
+const updateBookInfoAfterReview = async (bookID,reviewInfo) => {
     const bookRef = await firestore.collection('books').doc(bookID).get()
     const bookUpdatedInfo = bookRef.data()
     bookUpdatedInfo.totalComments = bookUpdatedInfo.totalComments + 1
