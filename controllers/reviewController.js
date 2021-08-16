@@ -9,9 +9,16 @@ const {addUserComment} = require("../controllers/UserCommentController")
 const addReview = async (req, res, next) => {
     try {
         const data = req.body;
-        await updateBookInfoAfterReview(data);
-        await firestore.collection('reviews').doc().set(data);
-        res.status(200).send("Review Added Successfully")
+        const exists = await checkIfReviewAlreadyExists(data)
+        if(exists){
+            res.status(400).send('Review for this book already exists by the user.')
+        }else{
+            await updateBookInfoAfterReview(data);
+            data['creationDateAndTime'] = Date.now()
+            data["totalLikes"] = 0
+            await firestore.collection('reviews').doc().set(data);
+            res.status(200).send("Review Added Successfully")
+        }
     } catch (error ){
         res.status(400).send(error)
     }
@@ -122,6 +129,16 @@ const likeComment = async (req,res,next) => {
     }
 }
 
+
+const checkIfReviewAlreadyExists = async(reviewData) => {
+    const reviewRef = await firestore.collection('reviews').where('userID','==',reviewData.userID).where('bookID','==',reviewData.bookID).get()
+    if(reviewRef.empty){
+        return false
+    }
+    else{
+        return true
+    }
+}
 
 // const deleteUser = async
 module.exports = {
