@@ -30,6 +30,7 @@ const addUser = async (req, res, next) => {
                     }
                 }
             })
+            data['role'] = 1
             await firestore.collection('users').doc().set(data);
             res.status(200).send("User Added Successfully")
         }
