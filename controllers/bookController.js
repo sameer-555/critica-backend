@@ -178,7 +178,7 @@ const getBookDoc = async (req,res,next) => {
     const bookID = req.query.id
     const response = { 
         data: {},
-        ratingInfo: [{},{},{},{}]
+        ratingInfo: []
     }
     if(!bookID){
         res.status(400).send("please make sure the id(bookID) parameter is set")
@@ -196,7 +196,23 @@ const getBookDoc = async (req,res,next) => {
         book['author'] = await getAuthorByID(book['author'])
         response.data = book
     }
+    response.ratingInfo = await getReviewsForBooks(bookID)
     res.status(200).send(response)
+}
+
+//get reviews book
+const getReviewsForBooks = async (bookID) => {
+    const reviewsRef = await firestore.collection('reviews').where('bookID','==',bookID).get()
+    const response = {1:0,2:0,3:0,4:0,5:0}
+    if(!reviewsRef.empty){
+        for(let i in reviewsRef.docs){
+            const doc = reviewsRef.docs[i]
+            if(doc.data().rating != 0){
+                response[parseInt(doc.data().rating)] = response[parseInt(doc.data().rating)] + 1 
+            }
+        }
+    }
+    return response
 }
 
 // const deleteUser = async
