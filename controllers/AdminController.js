@@ -2,6 +2,8 @@
 
 const firebase = require('../database');
 const firestore = firebase.firestore();
+const {sendMailToUser} = require('../notifications/MailConfig')
+const {getMailBody} = require('../notifications/MailBody')
 
 
 const getCriticRequest = async (req,res,next) => {
@@ -41,11 +43,17 @@ const adminApproveReject = async (req,res,next) =>{
     }
     if(body.respond){
         await firestore.collection('users').doc(body.userID).update({"role":2})
+        const userRef = await firestore.collection('users').doc(body.userID).get()
+        const mailBody = getMailBody('critic congratulation',userRef.data().firstName,userRef.data().lastName,userRef.data().email)
+        sendMailToUser(userRef.data().email,"You are now a Critic on our platform!",mailBody)
         res.status(200).send("Approved Successfully")
         return
     }
     else{
         await firestore.collection('users').doc(body.userID).update({"makeCriticRequest":0})
+        const userRef = await firestore.collection('users').doc(body.userID).get()
+        const mailBody = getMailBody('critic request reject',userRef.data().firstName,userRef.data().lastName,userRef.data().email)
+        sendMailToUser(userRef.data().email,"Sorry, your request is rejected for now.",mailBody)
         res.status(200).send("Request Rejected")
         return
     }

@@ -3,6 +3,8 @@
 const { response } = require('express');
 const firebase = require('../database');
 const User = require('../models/user')
+const {sendMailToUser} = require('../notifications/MailConfig')
+const {getMailBody} = require('../notifications/MailBody')
 const firestore = firebase.firestore();
 
 const addUser = async (req, res, next) => {
@@ -32,6 +34,8 @@ const addUser = async (req, res, next) => {
             })
             data['role'] = 1
             await firestore.collection('users').doc().set(data);
+            const mailBody = getMailBody('user first login',data['firstName'],data['lastName'],data['email'])
+            sendMailToUser(data['email'],"Welcome to critica",mailBody)
             res.status(200).send("User Added Successfully")
         }
     } catch (error ){
