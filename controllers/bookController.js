@@ -165,10 +165,45 @@ const createBookResponse = async(keys,filter,genresDict,bookRef) => {
     return bookList
 }
 
+//getbook by bookid
+
+const getBookDoc = async (req,res,next) => {
+    const genresDict = {}
+    const genresCollection = await firestore.collection('genres').get()
+    if(!genresCollection.empty){
+        genresCollection.forEach(doc => {
+            genresDict[doc.id] = doc.data().genre
+        })
+    }
+    const bookID = req.query.id
+    const response = { 
+        data: {},
+        ratingInfo: [{},{},{},{}]
+    }
+    if(!bookID){
+        res.status(400).send("please make sure the id(bookID) parameter is set")
+        return
+    }
+    const bookRef = await firestore.collection('books').doc(bookID).get()
+    if(bookRef.empty){
+        res.send(400).send("book id does not exists")
+        return
+    }else{
+        let book = {}
+        book = bookRef.data()
+        book['id'] = bookRef.id
+        book['genre'] = await updateGenre(genresDict,book['genre'])
+        book['author'] = await getAuthorByID(book['author'])
+        response.data = book
+    }
+    res.status(200).send(response)
+}
+
 // const deleteUser = async
 module.exports = {
     addBook,
     deleteBook,
     updateBook,
-    getBookbyFilterValue
+    getBookbyFilterValue,
+    getBookDoc
 }
