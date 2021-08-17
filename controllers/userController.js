@@ -72,9 +72,20 @@ const checkIfUserAlreadyExists = async (email) => {
     }
 }
 
+//check if user exists
+
+const checkUserExists = async (userID) => {
+    const userRef = await firestore.collection('users').doc(userID).get()
+    if(userRef.empty){
+        return false
+    }
+    return true
+}
+
 // const deleteUser = async
 module.exports = {
     addUser,
     updateUser,
-    getUserName
+    getUserName,
+    checkUserExists
 }

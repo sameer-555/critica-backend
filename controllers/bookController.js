@@ -4,6 +4,8 @@ const firebase = require('../database');
 const Book = require('../models/book')
 const firestore = firebase.firestore();
 const {getAuthorByID,updateGenre} = require('../controllers/homeController');
+const {checkUserExists} = require("../controllers/userController")
+const {getUserBookInfo} = require("../controllers/userBookController")
 const { response } = require('express');
 
 const addBook = async (req, res, next) => {
@@ -150,12 +152,6 @@ const createBookResponse = async(keys,filter,genresDict,bookRef) => {
     const bookList = []
     for(let i in bookRef.docs){   
         const doc = bookRef.docs[i]
-        //in firebase you cannot use array contains and in operator at the same time, so filtering the author programmatically
-        // if(keys.includes('author')){
-        //     if(!filter['author'].includes(doc.data().author)){
-        //         continue
-        //     }
-        // }
         const book = doc.data()
         book['genre'] = await updateGenre(genresDict,book['genre'])
         book['author'] = await getAuthorByID(book['author'])
@@ -175,7 +171,8 @@ const getBookDoc = async (req,res,next) => {
             genresDict[doc.id] = doc.data().genre
         })
     }
-    const bookID = req.query.id
+    const bookID = req.query.bookID
+    const userID = req.query.userID
     const response = { 
         data: {},
         ratingInfo: []
@@ -184,17 +181,24 @@ const getBookDoc = async (req,res,next) => {
         res.status(400).send("please make sure the id(bookID) parameter is set")
         return
     }
+    if(userID){
+        if(!checkUserExists(userID)){
+            res.status(400).send("userID does not exists")
+        }
+    }
     const bookRef = await firestore.collection('books').doc(bookID).get()
     if(bookRef.empty){
         res.send(400).send("book id does not exists")
         return
     }else{
+        const userBookInfoRef = await getUserBookInfo(bookID,userID)
         let book = {}
         book = bookRef.data()
         book['id'] = bookRef.id
         book['genre'] = await updateGenre(genresDict,book['genre'])
         book['author'] = await getAuthorByID(book['author'])
-        response.data = book
+        let bookAndUserBook = {...book, ...userBookInfoRef}
+        response.data = bookAndUserBook
     }
     response.ratingInfo = await getReviewsForBooks(bookID)
     res.status(200).send(response)
@@ -214,6 +218,7 @@ const getReviewsForBooks = async (bookID) => {
     }
     return response
 }
+
 
 // const deleteUser = async
 module.exports = {
