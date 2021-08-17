@@ -7,7 +7,7 @@ const {getAuthorByID,updateGenre} = require('../controllers/homeController');
 
 //to fetch the user books in read
 const getUserReadBooks = async(req,res,next) => {
-    const userId = req.params.id
+    const userId = req.query.id
     const genresCollection = await firestore.collection('genres').get()
     const genresDict = {}
     if(!genresCollection.empty){
@@ -15,7 +15,7 @@ const getUserReadBooks = async(req,res,next) => {
             genresDict[doc.id] = doc.data().genre
         })
     }
-    const userBookRef = await firestore.collection('user_books').get()
+    const userBookRef = await firestore.collection('user_books').where('userID',"==",userId).get()
     const response = {
         total: 0,
         books: []
@@ -121,7 +121,39 @@ const getBookInfo = async (bookID,genreDict) => {
     return bookdata
 }
 
+
+//get user book info by userid and bookid
+const getUserBookInfo = async(bookID,userID) => {
+    const response = {}
+    if(!userID){
+        response['userID'] = null
+        response['isInWishlist'] = false
+        response['isLiked'] = false
+        response['isRead'] = false
+    }
+    else{
+        const userBookRef = await firestore.collection('user_books').where('bookID',"==",bookID).where('userID',"==",userID).limit(1).get()
+        if(userBookRef.empty){
+            response['userID'] = userID
+            response['isInWishlist'] = false
+            response['isLiked'] = false
+            response['isRead'] = false
+        }else{
+            for(let i in userBookRef.docs){
+                const doc = userBookRef.docs[i]
+                response['userID'] = doc.id
+                response['isInWishlist'] = doc.data().isInWishlist
+                response['isLiked'] = doc.data().isLiked
+                response['isRead'] = doc.data().isRead
+            }
+        }
+    }
+    return response
+}
+
+
 module.exports = {
     updateUserBookDetails,
-    getUserReadBooks
+    getUserReadBooks,
+    getUserBookInfo
 }

@@ -4,7 +4,7 @@ const {updateUserBookDetails,getUserReadBooks} = require('../controllers/userBoo
 const router = express.Router();
 
 router.put('/userbook/userbookdetails',updateUserBookDetails)
-router.get('/userbook/getbooks/:id',getUserReadBooks)
+router.get('/userbook/getbooks',getUserReadBooks)
 
 module.exports = {
     routes:router
