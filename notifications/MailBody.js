@@ -34,7 +34,7 @@ const criticCongratulationBody = (firstName,lastName,email) => `
 `
 
 const criticRejectionBody = (firstName,lastName,email) => `
-    <p>Hi ${firstName} ${lastName}, <br>
+    <p>Hi ${firstName} ${lastName}, <br><br>
     Thank your for applying for critic position on our platform, we are sorry to inform you that<br>
     your request has been Rejected. <br>
     Please make sure you have added enough accomplishments in your profile.</p><br><br>
