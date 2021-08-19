@@ -6,6 +6,7 @@ const User = require('../models/user')
 const {sendMailToUser} = require('../notifications/MailConfig')
 const {getMailBody} = require('../notifications/MailBody')
 const firestore = firebase.firestore();
+const jwt = require('jsonwebtoken')
 
 const addUser = async (req, res, next) => {
     try {
@@ -98,8 +99,32 @@ const getUserInfo = async (email) => {
         userDetails = doc.data()
         userDetails['id'] = doc.id
         if (i == 0) break
-    }
+    }  
+    userDetails['access_token'] = jwt.sign({ id:userDetails.id },process.env.ACCESS_TOKEN_SECRET)
     return userDetails
+}
+
+//verification of jwt token
+const authenticateToken = async(req,res,next) => {
+    const authHeader =req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+    if(token == null) return res.sendStatus(401)
+    try{
+        const decode =  await jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
+        if(!decode.id){
+            res.status(400).send("Token is not valid")
+        }else{
+            const userRef = await firestore.collection('users').doc(decode.id).get()
+            if(userRef.empty){
+                res.statu(400).send("user id is invalid")
+            }else{
+                next()
+            }
+        }
+    }catch(error){
+        res.send("Token is invalid")
+    }
+
 }
 
 // const deleteUser = async
@@ -107,5 +132,6 @@ module.exports = {
     addUser,
     updateUser,
     getUserName,
-    checkUserExists
+    checkUserExists,
+    authenticateToken
 }
