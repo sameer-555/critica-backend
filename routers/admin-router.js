@@ -1,5 +1,6 @@
 const express = require('express')
 const {getCriticRequest,adminApproveReject} = require('../controllers/AdminController');
+const {authenticateToken} = require('../controllers/userController')
 
 const router = express.Router();
 
