@@ -16,7 +16,8 @@ const addUser = async (req, res, next) => {
         }
         const userExist =await checkIfUserAlreadyExists(data.email)
         if(userExist){
-            res.status(200).send("User Signed In")
+            const response = await getUserInfo(data.email)
+            res.status(200).send(response)
         }
         else{
             //creating user
@@ -34,9 +35,11 @@ const addUser = async (req, res, next) => {
             })
             data['role'] = 1
             await firestore.collection('users').doc().set(data);
+            const response = await getUserInfo(data.email)
+            //for sending the mail after first login
             const mailBody = getMailBody('user first login',data['firstName'],data['lastName'],data['email'])
             sendMailToUser(data['email'],"Welcome to critica",mailBody)
-            res.status(200).send("User Added Successfully")
+            res.status(200).send(response)
         }
     } catch (error ){
         res.status(400).send(error)
@@ -84,6 +87,19 @@ const checkUserExists = async (userID) => {
         return false
     }
     return true
+}
+
+//get user info by email
+const getUserInfo = async (email) => {
+    const userRef = await firestore.collection('users').where('email','==',email).get()
+    let userDetails = {}
+    for(let i in userRef.docs){
+        const doc = userRef.docs[i]
+        userDetails = doc.data()
+        userDetails['id'] = doc.id
+        if (i == 0) break
+    }
+    return userDetails
 }
 
 // const deleteUser = async
