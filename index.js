@@ -12,6 +12,7 @@ const userBookRoutes = require("./routers/user-book-router")
 const authorRoutes = require("./routers/author-router")
 const genreRoutes = require("./routers/genre-router")
 const adminRoutes = require("./routers/admin-router")
+const paymentRoutes = require("./routers/payment-router")
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api',userBookRoutes.routes)
 app.use('/api',authorRoutes.routes)
 app.use('/api',genreRoutes.routes)
 app.use('/api',adminRoutes.routes)
+app.use('/api',paymentRoutes.routes)
 
 
 if (process.env.NODE_ENV !== 'test') {
