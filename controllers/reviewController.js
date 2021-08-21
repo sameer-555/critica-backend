@@ -80,7 +80,8 @@ const removingUserReviewFromBook = async (reviewInfo) => {
 }
 
 const getReviewsByBookId = async (req,res,next) => {
-    const bookID = req.params.id
+    const bookID = req.body.bookID
+    const userID = req.body.userID
     const reviewRef = await firestore.collection('reviews').orderBy('creationDateAndTime').where('bookID',"==",bookID).get()
     const response = {
         total:0,
@@ -92,14 +93,26 @@ const getReviewsByBookId = async (req,res,next) => {
             const review = doc.data()
             review['id'] = doc.id
             review['userFullName'] = await getUserName(doc.data().userID)
+            if(userID){
+                const userCommentRef = await firestore.collection('user_comments').where('userID','==',userID).where('reviewID','==',doc.id).limit(1).get()
+                if(userCommentRef.empty){
+                    review['userLike'] = false
+                }else{
+                    userCommentRef.forEach(doc => {
+                        review['userLike'] = doc.data().isLiked
+                    })
+                }
+            }else{
+                review['userLike'] = false
+            }
             response.data.push(review)
             response.total = response.total + 1
         }
     }
     else{
-        res.status(200).send("No Review in Book.")
+        return res.status(200).send("No Review in Book.")
     }
-    res.status(200).send(response)
+    return res.status(200).send(response)
 }
 
 //add likes to comment and save user id on the comments

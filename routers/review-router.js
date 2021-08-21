@@ -6,7 +6,7 @@ const router = express.Router();
 router.post('/review',addReview)
 router.put('/review/:id',updateReview)
 router.delete('/review/:id',deleteReview)
-router.get('/review/:id',getReviewsByBookId)
+router.post('/reviewlike',getReviewsByBookId)
 router.put('/reviewlike',likeComment)
 
 module.exports = {
