@@ -5,4 +5,8 @@ const {payment} = require('../controllers/PaymentController')
 const router = express.Router();
 
 
-router.get('/payment',payment)
+router.post('/payment',payment)
+
+module.exports = {
+    routes:router
+}
