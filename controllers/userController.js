@@ -39,8 +39,10 @@ const addUser = async (req, res, next) => {
             const response = await getUserInfo(data.email)
             //for sending the mail after first login
             const mailBody = getMailBody('user first login',data['firstName'],data['lastName'],data['email'])
-            sendMailToUser(data['email'],"Welcome to critica",mailBody)
-            res.status(200).send(response)
+            if(process.env.BLOCK_MAIL != 1){
+                sendMailToUser(data['email'],"Welcome to critica",mailBody)
+                res.status(200).send(response)
+            }   
         }
     } catch (error ){
         res.status(400).send(error)

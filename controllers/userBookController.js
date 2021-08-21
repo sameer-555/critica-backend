@@ -94,29 +94,16 @@ const createUserBookRelation = async (relationData) => {
 
 const getBookInfo = async (bookID,genreDict) => {
     const firestoreRef = await firestore.collection('books').doc(bookID).get()
-    let bookdata = ''
-    if(!firestoreRef.empty){
-        for( let i in firestoreRef.docs){
-            const doc = firestoreRef.docs[i]
-            const book = new Book(
-                doc.id,
-                doc.data().title,
-                doc.data().author,
-                doc.data().genre,
-                doc.data().bookCover,
-                doc.data().description,
-                doc.data().totalRating,
-                doc.data().totalUsersCount,
-                doc.data().averageRating,
-                doc.data().creationDateAndTime,
-                doc.data().totalComments
-            )
-            if(genreDict){
-                book.genre = updateGenre(genreDict,book.genre)
-            }
-            book.author = await getAuthorByID(book.author)
-            bookdata = book 
+    let bookdata = {}
+    if(firestoreRef.id){
+        bookdata = firestoreRef.data()
+        bookdata['id'] = firestoreRef.id
+        if(genreDict){
+            bookdata.genre = updateGenre(genreDict,bookdata.genre)
         }
+        bookdata.author = await getAuthorByID(bookdata.author)
+    }else{
+        bookdata = "no book found with " + bookID +" please check the database."
     }
     return bookdata
 }

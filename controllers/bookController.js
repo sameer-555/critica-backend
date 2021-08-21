@@ -16,7 +16,8 @@ const addBook = async (req, res, next) => {
                 data[field] = 0
             }
         )
-        data['title_lowercase'] = data['title'].toLowerCase() 
+        data['title_lowercase'] = data['title'].toLowerCase()
+        data['creationDateAndTime'] = Date.now()
         await firestore.collection('books').doc().set(data);
         res.status(200).send("Book Added Successfully")
 
@@ -27,7 +28,7 @@ const addBook = async (req, res, next) => {
 
 const deleteBook = async (req,res,next) => {
     try{
-        const id =  req.params.id;
+        const id =  req.query.id;
         await firestore.collection("books").doc(id).delete()
         res.status(200).send("record deleted successfully")
     }catch(error){
@@ -37,7 +38,7 @@ const deleteBook = async (req,res,next) => {
 
 const updateBook = async(req,res,next) => {
     try{
-        const id = req.params.id
+        const id = req.query.id
         const data = req.body
         await firestore.collection('books').doc(id).update(data)
         res.status(200).send("successfully updated")
@@ -58,7 +59,7 @@ const getBookbyFilterValue = async (req,res,next) => {
         if (['averageRating','author','genre','title'].includes(keys[i])){
             // || (keys[i] === 'author' && !Array.isArray(data[keys[i]]))
             if((keys[i] === 'genre' && !Array.isArray(data[keys[i]]))){
-                res.status(400).send("Please make sure genre or author value is set in [] example {genre:['sci-fy','fantasy'],author:[1,2]}")
+                res.status(400).send("Please make sure genre or author value is set in [] example {genre:['sci-fy','fantasy'],author:2}")
             }
             if('title' === keys[i] && !(typeof(data[keys[i]]) === 'string')){
                 res.status(400).send("Please make sure Author or Title value is set in [] example {title:'Animal Farm'}")

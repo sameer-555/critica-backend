@@ -17,12 +17,6 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
-app.use(bodyParser.urlencoded({
-    extended: true
-}));
-app.use(bodyParser.urlencoded());
-
-app.use(bodyParser.json());
 
 app.use('/api',userRoutes.routes);
 app.use('/api',homeRoutes.routes);
@@ -33,4 +27,11 @@ app.use('/api',authorRoutes.routes)
 app.use('/api',genreRoutes.routes)
 app.use('/api',adminRoutes.routes)
 
-app.listen(config.port, () => console.log("app is running on this port",config.port))
+
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(config.port, () => console.log("app is running on this port",config.port))
+}
+
+module.exports = {
+    app
+}
