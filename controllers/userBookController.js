@@ -26,6 +26,9 @@ const getUserReadBooks = async(req,res,next) => {
             response.total += 1 
             const doc = userBookRef.docs[i]
             const bookData = await getBookInfo(doc.data().bookID,genresDict)
+            bookData['isInWishlist'] = doc.data().isInWishlist
+            bookData['isLiked'] = doc.data().isLiked
+            bookData['isRead'] = doc.data().isRead
             bookList.push(bookData)
         }
         response.books = bookList
