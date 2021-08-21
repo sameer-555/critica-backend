@@ -5,8 +5,8 @@ const router = express.Router();
 
 router.post('/book',addBook)
 router.get('/book',getBookDoc)
-router.delete('/book/:id',deleteBook)
-router.put("/book/:id",updateBook)
+router.delete('/book',deleteBook)
+router.put("/book",updateBook)
 router.post("/books/filtered",getBookbyFilterValue)
 
 
