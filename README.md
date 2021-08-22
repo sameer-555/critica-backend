@@ -49,10 +49,10 @@ Step 2: Add env variables from environment section.
 [Create firebase](https://console.firebase.google.com/u/0/) project and get the credentails from project setting.
 
 
-|Variable Name                |     Value                                            |
-|----------------|-------------------------------|-----------------------------|
-|API_KEY|`your firebase project's api key`            |
-|AUTH_DOMAIN|`your firebase project's auth domain`             |
+|Variable Name                |     Value            
+|----------------|------------------------------
+|API_KEY|`your firebase project's api key`  
+|AUTH_DOMAIN|`your firebase project's auth domain`     
 |PROJECT_ID |`your firebase project's project id`
 STORAGE_BUCKET|`your firebase project's storage bucket`
 MESSAGE_SENDER_ID|`your firebase project's message sender id`
