@@ -64,11 +64,15 @@ const updateUser = async (req,res,next) => {
 }
 
 //get user full name by user ID
-const getUserName = async(userID) => {
-    let userName = ''
+const getUserNameAndProfilePic = async(userID) => {
+    const response = {
+        userName: "",
+        profilePicture: ""
+    }
     const userRef = await firestore.collection('users').doc(userID).get()
-    userName = userRef.data().firstName + " " + userRef.data().lastName
-    return userName
+    response.userName = userRef.data().firstName + " " + userRef.data().lastName
+    response.profilePicture = userRef.data().profilePicture 
+    return response
 }
 
 //get user by email ID
@@ -133,7 +137,7 @@ const authenticateToken = async(req,res,next) => {
 module.exports = {
     addUser,
     updateUser,
-    getUserName,
+    getUserNameAndProfilePic,
     checkUserExists,
     authenticateToken
 }
