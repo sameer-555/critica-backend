@@ -7,6 +7,7 @@ Critica is a Book rating and recommending application. Crítica Backend provides
 
  - Nodejs
  - Git
+ 
  Nodejs environment is required to run this application, Git is required to pull the project from github.
 
 ## Dependencies 
