@@ -26,16 +26,16 @@ const homeData = async (req,res,next) => {
         const mostReadBooks = await firestore.collection('books').orderBy('totalUsersCount','desc').limit(10).get()
         const mostReadBookArray = await addBookInHomeResponse(mostReadBooks,genresDict)
         //recently added books 
-        const newlyAddedReadBooks = await firestore.collection('books').orderBy('creationDateAndTime','asc').limit(10).get()
+        const newlyAddedReadBooks = await firestore.collection('books').orderBy('creationDateAndTime','desc').limit(10).get()
         const newlyAddedBookArray = await addBookInHomeResponse(newlyAddedReadBooks,genresDict)
         //creating response
         response.critically_accliamed = criticallyAcclimedArray;
         response.most_read = mostReadBookArray;
         response.newly_added = newlyAddedBookArray;
         //sending response
-        res.status(200).send(response)
+        return res.status(200).send(response)
     }catch(error){
-        res.status(400).send(error)
+        return res.status(400).send(error)
     }
 }
 

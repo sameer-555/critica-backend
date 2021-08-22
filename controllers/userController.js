@@ -13,12 +13,12 @@ const addUser = async (req, res, next) => {
         const data = req.body;
         //basic validations
         if(!data.email){
-            res.status(400).send("Make sure email is set.")
+            return res.status(400).send("Make sure email is set.")
         }
         const userExist =await checkIfUserAlreadyExists(data.email)
         if(userExist){
             const response = await getUserInfo(data.email)
-            res.status(200).send(response)
+            return res.status(200).send(response)
         }
         else{
             //creating user
@@ -41,11 +41,11 @@ const addUser = async (req, res, next) => {
             const mailBody = getMailBody('user first login',data['firstName'],data['lastName'],data['email'])
             if(process.env.BLOCK_MAIL != 1){
                 sendMailToUser(data['email'],"Welcome to critica",mailBody)
-                res.status(200).send(response)
+                return res.status(200).send(response)
             }   
         }
     } catch (error ){
-        res.status(400).send(error)
+        return res.status(400).send(error)
     }
 }
 
@@ -54,12 +54,12 @@ const updateUser = async (req,res,next) => {
         const data = req.body.data
         const userID = req.body.id
         if(!data || !userID){
-            res.status(400).send("please make sure the format is correct, example { 'ud':'userid', 'data':{'firstName':'sameer'}}")
+            return res.status(400).send("please make sure the format is correct, example { 'ud':'userid', 'data':{'firstName':'sameer'}}")
         }
         await firestore.collection('users').doc(userID).update(data)
-        res.status(200).send("Successfully Updated")
+        return res.status(200).send("Successfully Updated")
     }catch (error){
-        res.status(400).send(error)
+        return res.status(400).send(error)
     }
 }
 
@@ -114,17 +114,17 @@ const authenticateToken = async(req,res,next) => {
     try{
         const decode =  await jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
         if(!decode.id){
-            res.status(400).send("Token is not valid")
+            return res.status(400).send("Token is not valid")
         }else{
             const userRef = await firestore.collection('users').doc(decode.id).get()
             if(userRef.empty){
-                res.statu(400).send("user id is invalid")
+                return res.statu(400).send("user id is invalid")
             }else{
                 next()
             }
         }
     }catch(error){
-        res.send("Token is invalid")
+        return res.send("Token is invalid")
     }
 
 }

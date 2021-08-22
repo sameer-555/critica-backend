@@ -16,7 +16,7 @@ const getGenres = async (req,res,next) => {
         genreResponse.total = genreResponse.total + 1
         genreResponse.data.push(genre)
     })
-    res.status(200).send(genreResponse) 
+    return res.status(200).send(genreResponse) 
 }
 
 module.exports = {
