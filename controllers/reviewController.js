@@ -10,20 +10,20 @@ const addReview = async (req, res, next) => {
     try {
         const data = req.body;
         if(!data['rating'] || !data['comment'] || !data['userID'] || !data['bookID']){
-            res.status(400).send("please make sure Rating,Comment,UserID and BookID is set.")
+            return res.status(400).send("please make sure Rating,Comment,UserID and BookID is set.")
         }
         const exists = await checkIfReviewAlreadyExists(data)
         if(exists){
-            res.status(400).send('Review for this book already exists by the user.')
+            return res.status(400).send('Review for this book already exists by the user.')
         }else{
             await updateBookInfoAfterReview(data.bookID,data);
             data['creationDateAndTime'] = Date.now()
             data["totalLikes"] = 0
             await firestore.collection('reviews').doc().set(data);
-            res.status(200).send("Review Added Successfully")
+            return res.status(200).send("Review Added Successfully")
         }
     } catch (error ){
-        res.status(400).send(error)
+        return res.status(400).send(error)
     }
 }
 
@@ -32,7 +32,7 @@ const updateReview = async (req,res,next) => {
         const reviewId = req.params.id
         const updatedReviewData = req.body
         if(!updatedReviewData.bookID){
-            res.status(400).send("please make sure bookID is in Update Request")
+            return res.status(400).send("please make sure bookID is in Update Request")
         }
         const reviewRef = await firestore.collection('reviews').doc(reviewId).get()
         const reviewInfo = reviewRef.data()
@@ -41,7 +41,7 @@ const updateReview = async (req,res,next) => {
         await updateBookInfoAfterReview(reviewInfo.bookID,updatedReviewData)
         res.status(200).send("successfully updated")
     }catch (error){
-        res.status(400).send(error)
+        return res.status(400).send(error)
     }
 }
 
@@ -50,7 +50,7 @@ const deleteReview = async (req,res,next) => {
     const reviewRef = await firestore.collection('reviews').doc(reviewId).get()
     await removingUserReviewFromBook(reviewRef.data())
     await firestore.collection('reviews').doc(reviewId).delete()
-    res.status(200).send("Deleted updated")
+    return res.status(200).send("Deleted updated")
 }
 
 //updating book accordingly as soon new review is added.
@@ -127,8 +127,8 @@ const likeComment = async (req,res,next) => {
         if(updateUserComment){
             updateReview['totalLikes'] = reviewRef.data().totalLikes + 1
             await firestore.collection('reviews').doc(reviewID).update(updateReview)
-            res.status(200).send("like added to the review")
-            return
+            return res.status(200).send("like added to the review")
+            
         }
         else{
             res.status(200).send("isLike is already set currently updated value")
@@ -138,11 +138,10 @@ const likeComment = async (req,res,next) => {
         if(updateUserComment){
             updateReview['totalLikes'] = reviewRef.data().totalLikes - 1
             await firestore.collection('reviews').doc(reviewID).update(updateReview)
-            res.status(200).send("like removed to the review")
-            return
+            return res.status(200).send("like removed to the review")
         }
         else{
-            res.status(200).send("isLike is already set currently updated value")
+            return res.status(200).send("isLike is already set currently updated value")
         }
     }
 }

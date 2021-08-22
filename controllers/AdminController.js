@@ -22,7 +22,7 @@ const getCriticRequest = async (req,res,next) => {
         const resp = createUserListResponse(firestRef)
         response.total = resp.length
         response.data = resp
-        res.status(200).send(response)
+        return res.status(200).send(response)
     }else{
         const lastVisibleRef = await firestore.collection('users').orderBy("creationDateAndTime").where('makeCriticRequest','==',1).limit(offset).get();
         const lastVisible = lastVisibleRef.docs[lastVisibleRef.docs.length - 1]
@@ -30,7 +30,7 @@ const getCriticRequest = async (req,res,next) => {
         const resp = createUserListResponse(userRef)
         response.total = resp.length
         response.data = resp
-        res.status(200).send(response)
+        return res.status(200).send(response)
     }
 }
 
@@ -46,16 +46,14 @@ const adminApproveReject = async (req,res,next) =>{
         const userRef = await firestore.collection('users').doc(body.userID).get()
         const mailBody = getMailBody('critic congratulation',userRef.data().firstName,userRef.data().lastName,userRef.data().email)
         sendMailToUser(userRef.data().email,"You are now a Critic on our platform!",mailBody)
-        res.status(200).send("Approved Successfully")
-        return
+        return res.status(200).send("Approved Successfully")
     }
     else{
         await firestore.collection('users').doc(body.userID).update({"makeCriticRequest":0})
         const userRef = await firestore.collection('users').doc(body.userID).get()
         const mailBody = getMailBody('critic request reject',userRef.data().firstName,userRef.data().lastName,userRef.data().email)
         sendMailToUser(userRef.data().email,"Sorry, your request is rejected for now.",mailBody)
-        res.status(200).send("Request Rejected")
-        return
+        return res.status(200).send("Request Rejected")
     }
 
 }

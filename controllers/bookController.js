@@ -19,10 +19,10 @@ const addBook = async (req, res, next) => {
         data['title_lowercase'] = data['title'].toLowerCase()
         data['creationDateAndTime'] = Date.now()
         await firestore.collection('books').doc().set(data);
-        res.status(200).send("Book Added Successfully")
+        return res.status(200).send("Book Added Successfully")
 
     } catch (error ){
-        res.status(400).send("")
+        return res.status(400).send("")
     }
 }
 
@@ -30,9 +30,9 @@ const deleteBook = async (req,res,next) => {
     try{
         const id =  req.query.id;
         await firestore.collection("books").doc(id).delete()
-        res.status(200).send("record deleted successfully")
+        return res.status(200).send("record deleted successfully")
     }catch(error){
-        res.status(400).send(error)
+        return res.status(400).send(error)
     }
 }
 
@@ -41,10 +41,10 @@ const updateBook = async(req,res,next) => {
         const id = req.query.id
         const data = req.body
         await firestore.collection('books').doc(id).update(data)
-        res.status(200).send("successfully updated")
+        return res.status(200).send("successfully updated")
     }
     catch(error){
-        res.status(400).send(error)
+        return res.status(400).send(error)
     }
 }
 
@@ -59,17 +59,17 @@ const getBookbyFilterValue = async (req,res,next) => {
         if (['averageRating','author','genre','title'].includes(keys[i])){
             // || (keys[i] === 'author' && !Array.isArray(data[keys[i]]))
             if((keys[i] === 'genre' && !Array.isArray(data[keys[i]]))){
-                res.status(400).send("Please make sure genre or author value is set in [] example {genre:['sci-fy','fantasy'],author:2}")
+                return res.status(400).send("Please make sure genre or author value is set in [] example {genre:['sci-fy','fantasy'],author:2}")
             }
             if('title' === keys[i] && !(typeof(data[keys[i]]) === 'string')){
-                res.status(400).send("Please make sure Author or Title value is set in [] example {title:'Animal Farm'}")
+                return res.status(400).send("Please make sure Author or Title value is set in [] example {title:'Animal Farm'}")
             }
             if(data[keys[i]] === 'averageRating' && !(typeof(data[keys[i]]) === 'number')){
-                res.status(400).send("Please make sure AverageRating value is number.")
+                return res.status(400).send("Please make sure AverageRating value is number.")
             }
         }
         else{
-            res.status(400).send("filter avaliable based on Title, AverageRating, Genre and Author Name")
+            return res.status(400).send("filter avaliable based on Title, AverageRating, Genre and Author Name")
         }
     }
 
@@ -120,8 +120,7 @@ const getBookbyFilterValue = async (req,res,next) => {
     }else{
         const lastVisibleRef = await copyForLastBookRef.limit(offset).get();
         if(lastVisibleRef.empty){
-            res.status(200).send("No data Avaliable")
-            return
+            return res.status(200).send("No data Avaliable")   
         }
         const lastVisible = lastVisibleRef.docs[lastVisibleRef.docs.length - 1]
         bookQueryRef = bookQueryRef.startAfter(lastVisible).limit(limit)
@@ -136,7 +135,7 @@ const getBookbyFilterValue = async (req,res,next) => {
     const booksListResponse = await createBookResponse(keys,data,genresDict,bookQueryData)
     response.total = booksListResponse.length
     response.data = booksListResponse
-    res.status(200).send(response)
+    return res.status(200).send(response)
 }
 
 
@@ -179,18 +178,16 @@ const getBookDoc = async (req,res,next) => {
         ratingInfo: []
     }
     if(!bookID){
-        res.status(400).send("please make sure the id(bookID) parameter is set")
-        return
+        return res.status(400).send("please make sure the id(bookID) parameter is set") 
     }
     if(userID){
         if(!checkUserExists(userID)){
-            res.status(400).send("userID does not exists")
+            return res.status(400).send("userID does not exists")
         }
     }
     const bookRef = await firestore.collection('books').doc(bookID).get()
     if(bookRef.empty){
-        res.send(400).send("book id does not exists")
-        return
+        return res.send(400).send("book id does not exists")
     }else{
         const userBookInfoRef = await getUserBookInfo(bookID,userID)
         let book = {}
@@ -202,7 +199,7 @@ const getBookDoc = async (req,res,next) => {
         response.data = bookAndUserBook
     }
     response.ratingInfo = await getReviewsForBooks(bookID)
-    res.status(200).send(response)
+    return res.status(200).send(response)
 }
 
 //get reviews book

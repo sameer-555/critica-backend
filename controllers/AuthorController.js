@@ -16,7 +16,7 @@ const getAuthors = async (req,res,next) => {
         authorResponse.total = authorResponse.total + 1
         authorResponse.data.push(author)
     })
-    res.status(200).send(authorResponse) 
+    return res.status(200).send(authorResponse) 
 }
 
 module.exports = {

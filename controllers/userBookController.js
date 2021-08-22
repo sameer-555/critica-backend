@@ -32,9 +32,9 @@ const getUserReadBooks = async(req,res,next) => {
             bookList.push(bookData)
         }
         response.books = bookList
-        res.status(200).send(response)
+        return res.status(200).send(response)
     }else{
-        res.status(200).send("No entries found")
+        return res.status(200).send("No entries found")
     }
 }
 
@@ -44,10 +44,10 @@ const updateUserBookDetails = async(req,res,next) => {
     if(userBookRef.empty){
         const userbookcreation = await createUserBookRelation(data)
         if(userbookcreation){
-            res.status(200).send("like added")
+            return res.status(200).send("like added")
         }
         else{
-            res.status(400).send("some error occured")
+            return res.status(400).send("some error occured")
         }
     }else{
         try{
@@ -63,12 +63,12 @@ const updateUserBookDetails = async(req,res,next) => {
                     const update_details = {}
                     update_details[field_list[i]] = data[field_list[i]]
                     await firestore.collection('user_books').doc(userBookID).update(update_details);
-                    res.status(200).send('updated successfully.')
+                    return res.status(200).send('updated successfully.')
                 }
             }
 
         } catch( error ){
-            res.status(500).send('error while updating like/wishlisting/read.')
+            return res.status(500).send('error while updating like/wishlisting/read.')
         }
 
     }
