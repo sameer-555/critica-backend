@@ -2,7 +2,7 @@
 
 const firebase = require('../database');
 const firestore = firebase.firestore();
-const {getUserName} = require("../controllers/userController")
+const {getUserNameAndProfilePic} = require("../controllers/userController")
 const {addUserComment} = require("../controllers/UserCommentController")
 
 
@@ -92,7 +92,9 @@ const getReviewsByBookId = async (req,res,next) => {
             const doc = reviewRef.docs[i]
             const review = doc.data()
             review['id'] = doc.id
-            review['userFullName'] = await getUserName(doc.data().userID)
+            const userInfo = await getUserNameAndProfilePic(doc.data().userID)
+            review['userFullName'] = userInfo.userName
+            review['profilePicture'] = userInfo.profilePicture
             if(userID){
                 const userCommentRef = await firestore.collection('user_comments').where('userID','==',userID).where('reviewID','==',doc.id).limit(1).get()
                 if(userCommentRef.empty){
