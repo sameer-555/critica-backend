@@ -3,7 +3,7 @@
 Critica is a Book rating and recommending application. Crítica Backend provides rich API's, Authentication and Authorization, Notifications, Payment and Database connection(Firestore) to the [Crítica Frontend](https://github.com/LuciKritZ/critica).
 
 
-# Contributers
+# Contributers and Product Links
 Links:
 
 -   [Crítica Backend](https://github.com/sameer-555/critica-backend).
