@@ -88,7 +88,6 @@ const createUserBookRelation = async (relationData) => {
         bookRelationObj['userID'] = relationData['userID']
         bookRelationObj['bookID'] = relationData['bookID']
         bookRelationObj['creationDateAndTime'] = Date.now()
-        console.log("0----------000-------000---------")
         await firestore.collection('user_books').doc().set(bookRelationObj);
         return true
     }catch(error){
