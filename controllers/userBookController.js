@@ -40,7 +40,7 @@ const getUserReadBooks = async(req,res,next) => {
 
 const updateUserBookDetails = async(req,res,next) => {
     const data = req.body;
-    const userBookRef = await firestore.collection('user_books').where('bookID','==',data.bookID).get()
+    const userBookRef = await firestore.collection('user_books').where('bookID','==',data.bookID).where('userID',"==",data.userID).get()
     if(userBookRef.empty){
         const userbookcreation = await createUserBookRelation(data)
         if(userbookcreation){
@@ -88,6 +88,7 @@ const createUserBookRelation = async (relationData) => {
         bookRelationObj['userID'] = relationData['userID']
         bookRelationObj['bookID'] = relationData['bookID']
         bookRelationObj['creationDateAndTime'] = Date.now()
+        console.log("0----------000-------000---------")
         await firestore.collection('user_books').doc().set(bookRelationObj);
         return true
     }catch(error){
