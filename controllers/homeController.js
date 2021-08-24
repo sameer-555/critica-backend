@@ -19,15 +19,22 @@ const homeData = async (req,res,next) => {
                 genresDict[doc.id] = doc.data().genre
             })
         }
+        const authorsRef = await firestore.collection('authors').get()
+        const authorDict = {}
+        if(!authorsRef.empty){
+            authorsRef.forEach(doc => {
+                authorDict[doc.id] = doc.data().author_name
+            })
+        }
         //to fetch highest rated book
         const criticallyAcclimedBooks = await firestore.collection('books').orderBy('averageRating','desc').limit(10).get()
-        const criticallyAcclimedArray = await addBookInHomeResponse(criticallyAcclimedBooks,genresDict)
+        const criticallyAcclimedArray = addBookInHomeResponse(criticallyAcclimedBooks,genresDict,authorDict)
         //to fetch most read book
         const mostReadBooks = await firestore.collection('books').orderBy('totalUsersCount','desc').limit(10).get()
-        const mostReadBookArray = await addBookInHomeResponse(mostReadBooks,genresDict)
+        const mostReadBookArray = addBookInHomeResponse(mostReadBooks,genresDict,authorDict)
         //recently added books 
         const newlyAddedReadBooks = await firestore.collection('books').orderBy('creationDateAndTime','desc').limit(10).get()
-        const newlyAddedBookArray = await addBookInHomeResponse(newlyAddedReadBooks,genresDict)
+        const newlyAddedBookArray = addBookInHomeResponse(newlyAddedReadBooks,genresDict,authorDict)
         //creating response
         response.critically_accliamed = criticallyAcclimedArray;
         response.most_read = mostReadBookArray;
@@ -44,7 +51,7 @@ const updateGenre = (genredictionary,genreList) => {
 }
 
 
-const addBookInHomeResponse = async (firestoreRef, genreDict, ) => {
+const addBookInHomeResponse = (firestoreRef, genreDict,authorDict ) => {
     const bookList = [];
     if(!firestoreRef.empty){
         for( let i in firestoreRef.docs){
@@ -65,7 +72,7 @@ const addBookInHomeResponse = async (firestoreRef, genreDict, ) => {
             if(genreDict){
                 book.genre = updateGenre(genreDict,book.genre)
             }
-            book.author = await getAuthorByID(book.author)      
+            book.author = authorDict[book.author]
             bookList.push(book)
         }
     }
