@@ -3,6 +3,32 @@
 Critica is a Book rating and recommending application. Crítica Backend provides rich API's, Authentication and Authorization, Notifications, Payment and Database connection(Firestore) to the [Crítica Frontend](https://github.com/LuciKritZ/critica).
 
 
+# Contributers and Product Links
+Links:
+
+-   [Crítica Backend](https://github.com/sameer-555/critica-backend).
+
+-   [Crítica Frontend](https://critica-frontend.netlify.app/)
+
+-   [Backend Host](https://critica-production.herokuapp.com/)
+
+Created by:
+
+-   Sameer Borkar
+
+    -   [GitHub](https://github.com/sameer-555)
+    -   [LinkedIn](https://www.linkedin.com/in/sameer-borkar-3809b0b3/)
+
+-   Tirth Patel
+
+    -   [GitHub](https://github.com/tirth089)
+    -   [LinkedIn](https://www.linkedin.com/in/tirth-p-7191b7215/)
+
+-   Krishal Shah
+    -   [GitHub](https://github.com/LuciKritZ)
+    -   [LinkedIn](https://www.linkedin.com/in/krishal-shah/)
+
+
 ##  Requirements
 
  - Nodejs
