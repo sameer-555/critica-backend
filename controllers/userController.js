@@ -38,11 +38,11 @@ const addUser = async (req, res, next) => {
             await firestore.collection('users').doc().set(data);
             const response = await getUserInfo(data.email)
             //for sending the mail after first login
-            const mailBody = getMailBody('user first login',data['firstName'],data['lastName'],data['email'])
             if(process.env.BLOCK_MAIL != 1){
-                sendMailToUser(data['email'],"Welcome to critica",mailBody)
-                return res.status(200).send(response)
+                const mailBody = getMailBody('user first login',data['firstName'],data['lastName'],data['email'])
+                sendMailToUser(data['email'],"Welcome to critica",mailBody)  
             }   
+            return res.status(200).send(response)
         }
     } catch (error ){
         return res.status(400).send(error)
@@ -57,6 +57,13 @@ const updateUser = async (req,res,next) => {
             return res.status(400).send("please make sure the format is correct, example { 'ud':'userid', 'data':{'firstName':'sameer'}}")
         }
         await firestore.collection('users').doc(userID).update(data)
+        if(data.isPremium == 1){
+            const userDetails = await firestore.collection('users').doc(userID).get()
+            if(process.env.BLOCK_MAIL != 1){
+                const mailBody = getMailBody('premium user mail',userDetails.data().firstName,userDetails.data().lastName,userDetails.data().email)
+                sendMailToUser(userDetails.data().email,"Thanks for using our Premium Membership!",mailBody)
+            }
+        }
         return res.status(200).send("Successfully Updated")
     }catch (error){
         return res.status(400).send(error)

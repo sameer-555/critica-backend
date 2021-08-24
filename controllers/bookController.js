@@ -96,10 +96,10 @@ const getBookbyFilterValue = async (req,res,next) => {
             const title = data[keys[i]].toLowerCase()
             bookQueryRef = bookQueryRef.orderBy('title_lowercase')
             .startAt(title)
-            .endAt(`${title}\uf8ff`)
+            .endAt(`${title}+\uf8ff`)
             copyForLastBookRef = copyForLastBookRef.orderBy('title_lowercase')
             .startAt(title)
-            .endAt(`${title}\uf8ff`)
+            .endAt(`${title}+\uf8ff`)
         }
         //filtering query for genre
         if(keys[i] === 'genre'){
