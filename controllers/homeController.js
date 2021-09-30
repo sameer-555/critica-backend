@@ -3,6 +3,7 @@
 const firebase = require('../database');
 const Book = require('../models/book')
 const firestore = firebase.firestore();
+const mcache = require('memory-cache')
 
 const homeData = async (req,res,next) => {
     try{
@@ -40,6 +41,8 @@ const homeData = async (req,res,next) => {
         response.most_read = mostReadBookArray;
         response.newly_added = newlyAddedBookArray;
         //sending response
+        //caching the response for 3 hours
+        mcache.put('__critica__home',response,9*540000)
         return res.status(200).send(response)
     }catch(error){
         return res.status(400).send(error)
